@@ -69,7 +69,7 @@ Example `~/.ssh/config` entry on your local machine:
 
 ```sshconfig
 Host android-termux
-    HostName 100.118.143.1
+    HostName [IP_ADDRESS]
     Port 8022
     User u0_a258
     IdentityFile ~/.ssh/id_ed25519

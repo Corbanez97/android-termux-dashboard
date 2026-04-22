@@ -61,28 +61,39 @@ def build_dashboard_payload() -> dict[str, Any]:
     storage = device_status["storage"]
     battery = device_status["battery"]
     device = device_status["device"]
+    loadavg = device_status["loadavg"]
     battery_level = battery.get("percentage")
 
     headline_stats = [
         {
+            "id": "services",
             "label": "Services online",
             "value": f"{online_services}/{service_count}",
             "tone": "neutral",
         },
         {
+            "id": "uptime",
             "label": "Device uptime",
             "value": device.get("uptime", "N/A"),
             "tone": "neutral",
         },
         {
+            "id": "battery",
             "label": "Battery",
             "value": f"{battery_level if battery_level is not None else 'N/A'}%",
             "tone": "good" if isinstance(battery_level, (int, float)) and battery_level >= 50 else "warn",
         },
         {
+            "id": "memory",
             "label": "Memory used",
             "value": format_percent(memory.get("used_pct")),
             "tone": "warn" if (memory.get("used_pct") or 0) >= 80 else "neutral",
+        },
+        {
+            "id": "cpu",
+            "label": "CPU Load (1m)",
+            "value": str(loadavg.get("1m", "N/A")),
+            "tone": "warn" if isinstance(loadavg.get("1m"), (int, float)) and loadavg.get("1m") >= 4.0 else "neutral",
         },
     ]
 

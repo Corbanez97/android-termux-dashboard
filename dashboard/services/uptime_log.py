@@ -7,6 +7,7 @@ from pathlib import Path
 from time import sleep
 from typing import Any
 
+from dashboard.services.device import get_loadavg, get_memory_info, get_battery
 from dashboard.services.runtime import collect_service_status
 
 
@@ -14,6 +15,9 @@ def take_snapshot() -> dict[str, Any]:
     return {
         "timestamp": datetime.now().isoformat(timespec="seconds"),
         "services": collect_service_status(),
+        "memory": get_memory_info(),
+        "loadavg": get_loadavg(),
+        "battery": get_battery(),
     }
 
 

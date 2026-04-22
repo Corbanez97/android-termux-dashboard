@@ -6,13 +6,13 @@
     <title>Android Termux Dashboard</title>
     <meta http-equiv="refresh" content="{{ auto_refresh_seconds }}">
     <link rel="stylesheet" href="{{ request.url_for('static', path='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="page-shell">
         <header class="hero">
             <div class="hero__content">
-                <p class="eyebrow">Android Termux Dashboard</p>
-                <h1>Structured visibility for device health, uptime history, and service stability.</h1>
+                <h1>Android Termux Dashboard</h1>
                 <p class="hero__copy">
                     Last refresh {{ timestamp }}.
                     Browser refresh runs every {{ auto_refresh_seconds }} seconds,
@@ -27,11 +27,16 @@
                     <a href="/health">Health</a>
                 </nav>
             </div>
-            <div class="hero__stats">
+            <div class="hero__stats hero__stats--horizontal">
                 {% for stat in headline_stats %}
                 <article class="stat-card stat-card--{{ stat.tone }}">
                     <p>{{ stat.label }}</p>
                     <strong>{{ stat.value }}</strong>
+                    {% if stat.id != 'uptime' %}
+                    <div class="stat-graph">
+                        <canvas id="chart-{{ stat.id }}"></canvas>
+                    </div>
+                    {% endif %}
                 </article>
                 {% endfor %}
             </div>
@@ -53,7 +58,13 @@
                         <div class="service-card__top">
                             <div>
                                 <p class="service-card__group">{{ service.group }}</p>
-                                <h3>{{ service.name }}</h3>
+                                <h3>
+                                    {% if service.port and service.is_online %}
+                                        <a href="http://{{ request.url.hostname }}:{{ service.port }}" target="_blank" style="text-decoration: underline;">{{ service.name }}</a>
+                                    {% else %}
+                                        {{ service.name }}
+                                    {% endif %}
+                                </h3>
                             </div>
                             <span class="status-pill {{ service.status_class }}">{{ service.status }}</span>
                         </div>
@@ -260,5 +271,81 @@
             </section>
         </main>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/uptime-log');
+                const data = await response.json();
+                const entries = data.entries || [];
+                
+                const labels = [];
+                const series = {
+                    services: [],
+                    battery: [],
+                    memory: [],
+                    cpu: []
+                };
+                
+                entries.forEach(entry => {
+                    if(entry.timestamp) {
+                        const date = new Date(entry.timestamp);
+                        labels.push(date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0'));
+                        
+                        if(entry.services) {
+                            series.services.push(entry.services.filter(s => s.is_online).length);
+                        } else {
+                            series.services.push(null);
+                        }
+                        
+                        series.battery.push(entry.battery && entry.battery.percentage !== undefined ? entry.battery.percentage : null);
+                        series.memory.push(entry.memory && entry.memory.used_pct !== undefined ? entry.memory.used_pct : null);
+                        series.cpu.push(entry.loadavg && entry.loadavg["1m"] !== undefined ? entry.loadavg["1m"] : null);
+                    }
+                });
+
+                const commonOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false, beginAtZero: true }
+                    },
+                    layout: { padding: 0 },
+                    elements: { point: { radius: 0 } }
+                };
+
+                const charts = [
+                    { id: 'services', color: '#8df0b8' },
+                    { id: 'battery', color: '#8df0b8' },
+                    { id: 'memory', color: '#ffc76b' },
+                    { id: 'cpu', color: '#ffc76b' }
+                ];
+
+                charts.forEach(c => {
+                    const canvas = document.getElementById('chart-' + c.id);
+                    if(canvas) {
+                        new Chart(canvas.getContext('2d'), {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    data: series[c.id],
+                                    borderColor: c.color,
+                                    borderWidth: 1.5,
+                                    tension: 0.3,
+                                }]
+                            },
+                            options: commonOptions
+                        });
+                    }
+                });
+
+            } catch (err) {
+                console.error("Failed to load chart data", err);
+            }
+        });
+    </script>
 </body>
 </html>

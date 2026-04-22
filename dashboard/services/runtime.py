@@ -4,6 +4,7 @@ import json
 import os
 import time
 from collections import deque
+from datetime import datetime, timedelta
 from subprocess import DEVNULL, CalledProcessError, run
 from typing import Any
 
@@ -85,6 +86,19 @@ def get_pm2_processes() -> list[dict[str, Any]]:
         status = str(env.get("status", "unknown"))
         name = str(item.get("name", "unknown"))
 
+        port = None
+        args = env.get("args")
+        if args:
+            import re
+            args_str = " ".join(str(a) for a in args) if isinstance(args, list) else str(args)
+            m = re.search(r"--port\s+(\d+)", args_str)
+            if m:
+                port = m.group(1)
+        if not port:
+            env_vars = env.get("env", {})
+            if isinstance(env_vars, dict) and "PORT" in env_vars:
+                port = env_vars["PORT"]
+
         services.append(
             {
                 "key": f"pm2:{name}",
@@ -98,6 +112,7 @@ def get_pm2_processes() -> list[dict[str, Any]]:
                 "uptime_seconds": uptime_seconds,
                 "restarts": env.get("restart_time", 0),
                 "details": f"cwd: {env.get('pm_cwd', 'N/A')}",
+                "port": port,
             }
         )
 
@@ -175,6 +190,14 @@ def read_recent_log_entries(log_path: str, limit: int) -> list[dict[str, Any]]:
             continue
 
         if isinstance(payload, dict):
+            timestamp_str = payload.get("timestamp")
+            if timestamp_str:
+                try:
+                    ts = datetime.fromisoformat(timestamp_str)
+                    if datetime.now() - ts > timedelta(hours=24):
+                        continue
+                except ValueError:
+                    pass
             parsed_entries.append(payload)
 
     return parsed_entries
