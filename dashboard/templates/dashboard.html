@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Android Termux Dashboard</title>
+    <meta http-equiv="refresh" content="{{ auto_refresh_seconds }}">
+    <link rel="stylesheet" href="{{ request.url_for('static', path='styles.css') }}">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="hero">
+            <div class="hero__content">
+                <p class="eyebrow">Android Termux Dashboard</p>
+                <h1>Structured visibility for device health, uptime history, and service stability.</h1>
+                <p class="hero__copy">
+                    Last refresh {{ timestamp }}.
+                    Browser refresh runs every {{ auto_refresh_seconds }} seconds,
+                    while uptime snapshots are collected continuously in the background.
+                </p>
+                <nav class="hero__nav">
+                    <a href="#services">Services</a>
+                    <a href="#history">Uptime History</a>
+                    <a href="#device">Device</a>
+                    <a href="/api/status">JSON API</a>
+                    <a href="/api/uptime-log">Log API</a>
+                    <a href="/health">Health</a>
+                </nav>
+            </div>
+            <div class="hero__stats">
+                {% for stat in headline_stats %}
+                <article class="stat-card stat-card--{{ stat.tone }}">
+                    <p>{{ stat.label }}</p>
+                    <strong>{{ stat.value }}</strong>
+                </article>
+                {% endfor %}
+            </div>
+        </header>
+
+        <main class="content">
+            <section id="services" class="panel-section">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">Current State</p>
+                        <h2>Runtime services</h2>
+                    </div>
+                    <p class="section-copy">Live view of every PM2 process plus the Termux ssh daemon.</p>
+                </div>
+
+                <div class="services-grid">
+                    {% for service in services %}
+                    <article class="service-card">
+                        <div class="service-card__top">
+                            <div>
+                                <p class="service-card__group">{{ service.group }}</p>
+                                <h3>{{ service.name }}</h3>
+                            </div>
+                            <span class="status-pill {{ service.status_class }}">{{ service.status }}</span>
+                        </div>
+                        <dl class="service-meta">
+                            <div>
+                                <dt>Uptime</dt>
+                                <dd>{{ service.uptime }}</dd>
+                            </div>
+                            <div>
+                                <dt>PID</dt>
+                                <dd>{{ service.pid or 'N/A' }}</dd>
+                            </div>
+                            <div>
+                                <dt>Restarts</dt>
+                                <dd>{{ service.restarts if service.restarts is not none else 'N/A' }}</dd>
+                            </div>
+                            <div>
+                                <dt>Details</dt>
+                                <dd>{{ service.details }}</dd>
+                            </div>
+                        </dl>
+                    </article>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section id="history" class="panel-section">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">Observed Stability</p>
+                        <h2>Uptime history</h2>
+                    </div>
+                    <p class="section-copy">Sample-based history stored on disk for every PM2 process and sshd.</p>
+                </div>
+
+                <div class="panel-grid panel-grid--wide">
+                    <article class="panel-card">
+                        <h3>Availability summary</h3>
+                        <div class="table-shell">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Service</th>
+                                        <th>Group</th>
+                                        <th>Online %</th>
+                                        <th>Samples</th>
+                                        <th>Restarts</th>
+                                        <th>Latest uptime</th>
+                                        <th>Last restart</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in history_summary %}
+                                    <tr>
+                                        <td data-label="Service">{{ item.name }}</td>
+                                        <td data-label="Group">{{ item.group }}</td>
+                                        <td data-label="Online %">{{ item.online_pct }}</td>
+                                        <td data-label="Samples">{{ item.samples }}</td>
+                                        <td data-label="Restarts">{{ item.restart_events }}</td>
+                                        <td data-label="Latest uptime">{{ item.latest_uptime }}</td>
+                                        <td data-label="Last restart">{{ item.last_restart_at }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="7" class="empty-state">No uptime samples have been recorded yet.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <article class="panel-card">
+                        <h3>Recent service events</h3>
+                        <div class="event-list">
+                            {% for event in recent_events %}
+                            <article class="event-item">
+                                <div>
+                                    <p class="event-item__title">{{ event.service }} · {{ event.event }}</p>
+                                    <p class="event-item__detail">{{ event.detail }}</p>
+                                </div>
+                                <time>{{ event.timestamp }}</time>
+                            </article>
+                            {% else %}
+                            <p class="empty-state">No restarts or status changes observed in the saved log window.</p>
+                            {% endfor %}
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section id="device" class="panel-section">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">Device Telemetry</p>
+                        <h2>Segmented system view</h2>
+                    </div>
+                    <p class="section-copy">Power, networking, storage, memory, and radio state in separate panels.</p>
+                </div>
+
+                <div class="panel-grid">
+                    <article class="panel-card">
+                        <h3>Device</h3>
+                        <table>
+                            <tbody>
+                                {% for row in sections.device_rows %}
+                                <tr><th>{{ row.label }}</th><td>{{ row.value }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </article>
+                    <article class="panel-card">
+                        <h3>Battery</h3>
+                        <table>
+                            <tbody>
+                                {% for row in sections.battery_rows %}
+                                <tr><th>{{ row.label }}</th><td>{{ row.value }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </article>
+                    <article class="panel-card">
+                        <h3>Memory</h3>
+                        <table>
+                            <tbody>
+                                {% for row in sections.memory_rows %}
+                                <tr><th>{{ row.label }}</th><td>{{ row.value }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </article>
+                    <article class="panel-card">
+                        <h3>Storage</h3>
+                        <table>
+                            <tbody>
+                                {% for row in sections.storage_rows %}
+                                <tr><th>{{ row.label }}</th><td>{{ row.value }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </article>
+                    <article class="panel-card">
+                        <h3>Load average</h3>
+                        <table>
+                            <tbody>
+                                {% for row in sections.load_rows %}
+                                <tr><th>{{ row.label }}</th><td>{{ row.value }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </article>
+                    <article class="panel-card">
+                        <h3>Wi-Fi</h3>
+                        <table>
+                            <tbody>
+                                {% for row in sections.network_rows %}
+                                <tr><th>{{ row.label }}</th><td>{{ row.value }}</td></tr>
+                                {% else %}
+                                <tr><td colspan="2" class="empty-state">No Wi-Fi data available.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </article>
+                    <article class="panel-card">
+                        <h3>Telephony</h3>
+                        <table>
+                            <tbody>
+                                {% for row in sections.telephony_rows %}
+                                <tr><th>{{ row.label }}</th><td>{{ row.value }}</td></tr>
+                                {% else %}
+                                <tr><td colspan="2" class="empty-state">No telephony data available.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </article>
+                    <article class="panel-card panel-card--span">
+                        <h3>Connectivity checks</h3>
+                        <div class="table-shell">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Target</th>
+                                        <th>State</th>
+                                        <th>Status</th>
+                                        <th>Latency</th>
+                                        <th>Error</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in device_status.connectivity_checks %}
+                                    <tr>
+                                        <td data-label="Target">{{ item.url }}</td>
+                                        <td data-label="State">{{ 'online' if item.ok else 'offline' }}</td>
+                                        <td data-label="Status">{{ item.status_code or 'N/A' }}</td>
+                                        <td data-label="Latency">{{ item.latency_ms }} ms</td>
+                                        <td data-label="Error">{{ item.error or 'None' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
