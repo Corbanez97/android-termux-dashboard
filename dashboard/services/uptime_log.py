@@ -97,6 +97,7 @@ def build_history_summary(entries: list[dict[str, Any]]) -> list[dict[str, Any]]
             item["_last_status"] = status
             item["_last_uptime_seconds"] = uptime_seconds
             item["_last_restart_counter"] = restart_counter
+            item["_last_port"] = service.get("port")
             item["latest_status"] = status
             item["latest_uptime"] = service.get("uptime", "N/A")
             item["latest_timestamp"] = timestamp
@@ -116,6 +117,7 @@ def build_history_summary(entries: list[dict[str, Any]]) -> list[dict[str, Any]]
                 "latest_status": item["latest_status"],
                 "latest_uptime": item["latest_uptime"],
                 "latest_timestamp": item["latest_timestamp"] or "N/A",
+                "port": item.get("_last_port"),
             }
         )
 
