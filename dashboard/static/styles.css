@@ -1,19 +1,23 @@
 :root {
-    --bg: #050a14;
-    --panel: rgba(13, 22, 38, 0.72);
-    --panel-strong: rgba(18, 32, 54, 0.88);
-    --panel-soft: rgba(23, 40, 68, 0.6);
-    --border: rgba(146, 184, 218, 0.12);
-    --border-bright: rgba(115, 217, 255, 0.25);
-    --text: #f0f7ff;
-    --muted: #8ba2b8;
-    --cyan: #4dd0ff;
-    --amber: #ffb84d;
-    --green: #70e8a3;
-    --red: #ff7070;
-    --shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
-    --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.7);
-    --glass: blur(20px) saturate(180%);
+    /* ── Horizon Dark palette ── */
+    --bg: #1C1E26;
+    --panel: rgba(30, 32, 44, 0.78);
+    --panel-strong: rgba(38, 40, 54, 0.92);
+    --panel-soft: rgba(46, 48, 62, 0.60);
+    --border: rgba(233, 86, 120, 0.14);
+    --border-bright: rgba(250, 183, 149, 0.35);
+    --text: #E3E6EE;
+    --muted: #6C6F93;
+    /* Horizon accent colours */
+    --cyan: #25B0BC;       /* teal — functions */
+    --amber: #FAB795;      /* warm coral-orange — strings */
+    --green: #29D398;      /* mint green */
+    --red: #E95678;        /* Horizon pink-red */
+    --purple: #B877DB;     /* keywords */
+    --orange: #F09483;     /* constants */
+    --shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+    --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.75);
+    --glass: blur(20px) saturate(160%);
 }
 
 * {
@@ -30,9 +34,10 @@ body {
     font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif;
     color: var(--text);
     background:
-        radial-gradient(circle at 0% 0%, rgba(77, 208, 255, 0.15), transparent 35%),
-        radial-gradient(circle at 100% 0%, rgba(255, 184, 77, 0.1), transparent 30%),
-        radial-gradient(circle at 50% 50%, rgba(13, 22, 38, 1), #050a14);
+        radial-gradient(ellipse at 0% 0%, rgba(233, 86, 120, 0.12), transparent 40%),
+        radial-gradient(ellipse at 100% 0%, rgba(184, 119, 219, 0.10), transparent 38%),
+        radial-gradient(ellipse at 50% 100%, rgba(250, 183, 149, 0.07), transparent 45%),
+        radial-gradient(circle at 50% 50%, #1e2030, #1C1E26);
     background-attachment: fixed;
 }
 
@@ -42,7 +47,7 @@ a {
 }
 
 a:hover {
-    color: var(--cyan);
+    color: var(--amber);
 }
 
 table {
@@ -123,7 +128,7 @@ thead th {
 
 .eyebrow {
     margin: 0;
-    color: var(--cyan);
+    color: var(--amber);
     text-transform: uppercase;
     letter-spacing: 0.18em;
     font-size: 0.74rem;
@@ -139,17 +144,17 @@ thead th {
 
 .hero__nav a {
     padding: 0.8rem 1.2rem;
-    border: 1px solid rgba(115, 217, 255, 0.2);
+    border: 1px solid rgba(233, 86, 120, 0.25);
     border-radius: 999px;
-    background: rgba(115, 217, 255, 0.08);
+    background: rgba(233, 86, 120, 0.08);
     text-decoration: none;
     white-space: nowrap;
     font-weight: 500;
 }
 
 .hero__nav a:hover {
-    background: rgba(115, 217, 255, 0.15);
-    border-color: var(--cyan);
+    background: rgba(250, 183, 149, 0.14);
+    border-color: var(--amber);
 }
 
 .hero__stats {
@@ -262,7 +267,7 @@ thead th {
     margin: 0 0 1rem;
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--cyan);
+    color: var(--amber);
 }
 
 .status-pill {
@@ -276,12 +281,12 @@ thead th {
 }
 
 .status-up {
-    background: rgba(112, 232, 163, 0.15);
+    background: rgba(41, 211, 152, 0.12);
     color: var(--green);
 }
 
 .status-down {
-    background: rgba(255, 112, 112, 0.15);
+    background: rgba(233, 86, 120, 0.15);
     color: var(--red);
 }
 
@@ -350,7 +355,7 @@ thead th {
     margin: 0;
     font-size: 1.2rem;
     font-weight: 700;
-    color: var(--cyan);
+    color: var(--amber);
 }
 
 .history-card__name a {
@@ -391,17 +396,17 @@ thead th {
 }
 
 .avail-badge--good {
-    background: rgba(112, 232, 163, 0.15);
+    background: rgba(41, 211, 152, 0.12);
     color: var(--green);
 }
 
 .avail-badge--warn {
-    background: rgba(255, 184, 77, 0.15);
+    background: rgba(250, 183, 149, 0.15);
     color: var(--amber);
 }
 
 .avail-badge--bad {
-    background: rgba(255, 112, 112, 0.15);
+    background: rgba(233, 86, 120, 0.15);
     color: var(--red);
 }
 
@@ -437,8 +442,8 @@ thead th {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--cyan);
-    opacity: 0.6;
+    background: var(--red);
+    opacity: 0.7;
     margin-top: 4px;
     justify-self: center;
 }
@@ -488,7 +493,7 @@ thead th {
     border-bottom: 1px solid var(--border);
     font-size: 1rem;
     font-weight: 700;
-    color: var(--cyan);
+    color: var(--amber);
     text-transform: uppercase;
     letter-spacing: 0.12em;
 }
@@ -630,28 +635,14 @@ thead th {
         min-width: 0;
     }
 
-    .data-table thead {
-        display: none;
+    /* Connectivity table: keep as a proper table on mobile, just compact it */
+    .data-table {
+        font-size: 0.82rem;
     }
 
-    .data-table tr {
-        display: block;
-        border-bottom: 1px solid var(--border);
-        padding: 1rem 0;
-    }
-
+    .data-table th,
     .data-table td {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.5rem 0;
-        border: none;
-    }
-
-    .data-table td::before {
-        content: attr(data-label);
-        font-weight: 700;
-        color: var(--muted);
-        text-transform: uppercase;
-        font-size: 0.7rem;
+        padding: 0.55rem 0.5rem;
+        word-break: break-word;
     }
 }
